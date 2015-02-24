@@ -15,8 +15,8 @@
 
 LOCAL struct esp_platform_saved_param esp_param;
 
-static void ICACHE_FLASH_ATTR setup_ap_mode();
-static void ICACHE_FLASH_ATTR setup_station_mode();
+LOCAL void ICACHE_FLASH_ATTR setup_ap_mode();
+LOCAL void ICACHE_FLASH_ATTR setup_station_mode();
 
 
 void ICACHE_FLASH_ATTR init_network()
@@ -43,7 +43,7 @@ void ICACHE_FLASH_ATTR init_network()
 
 }
 
-static void ICACHE_FLASH_ATTR setup_ap_mode()
+LOCAL void ICACHE_FLASH_ATTR setup_ap_mode()
 {
 	wifi_station_disconnect();
 	wifi_station_dhcpc_stop();
@@ -95,7 +95,7 @@ static void ICACHE_FLASH_ATTR setup_ap_mode()
 
 }
 
-static void ICACHE_FLASH_ATTR setup_station_mode()
+LOCAL void ICACHE_FLASH_ATTR setup_station_mode()
 {
 	struct station_config stationConf;
 

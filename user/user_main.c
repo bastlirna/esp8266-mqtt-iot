@@ -18,7 +18,7 @@
 
 struct rst_info rtc_info;
 
-void output_redirect(const char *str) {
+void ICACHE_FLASH_ATTR output_redirect(const char *str) {
 	os_printf("%s", str);
 }
 

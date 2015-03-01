@@ -26,7 +26,7 @@ uint8_t retries = 0;
 
 enum NetworkConnectionState state = 0;
 
-LOCAL void station_connect() {
+LOCAL void ICACHE_FLASH_ATTR station_connect() {
 	retries++;
 
 	if(retries > 1){
@@ -89,7 +89,7 @@ LOCAL void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 	}
 }
 
-LOCAL void runCheckTimer() {
+LOCAL void ICACHE_FLASH_ATTR runCheckTimer() {
 	os_timer_disarm(&wiFiLinker);
 	os_timer_setfn(&wiFiLinker, (os_timer_func_t *) wifi_check_ip, NULL);
 	os_timer_arm(&wiFiLinker, 1000, 0);

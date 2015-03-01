@@ -16,7 +16,7 @@
 
 #include "user_webserver.h"
 
-LOCAL char *webserver_parse_request(struct HttpRequest *request, char *p_data, unsigned short length) {
+LOCAL char ICACHE_FLASH_ATTR *webserver_parse_request(struct HttpRequest *request, char *p_data, unsigned short length) {
 	// GET /index.html HTTP/1.1\r\n
 	// Host: www.example.com\r\n
 	// \r\n
@@ -69,6 +69,7 @@ LOCAL char *webserver_parse_request(struct HttpRequest *request, char *p_data, u
 				DEBUG("[WEBSERVER] GET request (%u:%s)\r\n", len, request->path);
 
 				break;
+
 			}
 
 		}
@@ -81,33 +82,43 @@ LOCAL char *webserver_parse_request(struct HttpRequest *request, char *p_data, u
 	return p_data;
 }
 
-LOCAL void ICACHE_FLASH_ATTR webserver_reply(struct espconn *connection) {
-	char httphead[256];
 
-	os_sprintf(httphead, "HTTP/1.0 200 OK\r\nServer: ESPuWeb 1.0\r\n\r\nHello");
+void ICACHE_FLASH_ATTR webserverReply(struct espconn *connection, uint8 *psent, uint16 length) {
 
 #ifdef SERVER_SSL_ENABLE
-	espconn_secure_sent(connection, httphead, os_strlen(httphead));
+	espconn_secure_sent(connection, psent, length);
 #else
-	espconn_sent(connection, httphead, os_strlen(httphead));
+	espconn_sent(connection, psent, length);
 #endif
 }
 
-LOCAL void ICACHE_FLASH_ATTR webserver_recv(void *arg, char *p_data, unsigned short length) {
-	struct espconn *ptrespconn = arg;
+void ICACHE_FLASH_ATTR webserverReplyS(struct espconn *connection, char *str) {
+	webserverReply(connection, str, os_strlen(str));
+}
 
-	INFO("recv\r\n");
+void ICACHE_FLASH_ATTR webserverReplyHeader(struct espconn *connection, uint16_t code) {
+	char httphead[256];
+
+	c_sprintf(httphead, "HTTP/1.0 %u OK\r\nServer: ESPuWeb 1.0\r\n\r\n", code);
+
+	webserverReply(connection, httphead, os_strlen(httphead));
+
+}
+
+LOCAL void ICACHE_FLASH_ATTR webserver_recv(void *arg, char *p_data, unsigned short length) {
+	struct espconn *connection = arg;
 
 	struct HttpRequest req;
 
 	webserver_parse_request(&req, p_data, length);
 
-	INFO("TYPE: %u path: %s\r\n", req.type, req.path);
+	DEBUG("[WEBSERVER] request: %u path: %s\r\n", req.type, req.path);
 
 	// TODO: parse request
 
-	webserver_reply(ptrespconn);
+	webserver_homepage_print(connection);
 
+	espconn_disconnect(connection);
 }
 
 LOCAL ICACHE_FLASH_ATTR void webserver_recon(void *arg, sint8 err) {
@@ -121,11 +132,9 @@ LOCAL ICACHE_FLASH_ATTR void webserver_discon(void *arg) {
 LOCAL void ICACHE_FLASH_ATTR webserver_listen(void *arg) {
 	struct espconn *pesp_conn = arg;
 
-	INFO("listen\r\n");
 	espconn_regist_recvcb(pesp_conn, webserver_recv);
 	espconn_regist_reconcb(pesp_conn, webserver_recon);
 	espconn_regist_disconcb(pesp_conn, webserver_discon);
-
 
 }
 

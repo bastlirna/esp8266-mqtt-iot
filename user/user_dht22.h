@@ -12,4 +12,7 @@
 
 void ICACHE_FLASH_ATTR user_dht22_init(void);
 
+float ICACHE_FLASH_ATTR dht22_getTemperature();
+float ICACHE_FLASH_ATTR dht22_getHumidity();
+
 #endif /* USER_DHT22_H_ */

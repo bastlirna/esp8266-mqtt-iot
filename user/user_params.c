@@ -14,7 +14,7 @@
 
 struct esp_platform_saved_param esp_param;
 
-struct esp_platform_saved_param *get_params()
+struct esp_platform_saved_param ICACHE_FLASH_ATTR *get_params()
 {
 	return &esp_param;
 }
@@ -51,7 +51,7 @@ LOCAL void ICACHE_FLASH_ATTR user_esp_platform_save_param(struct esp_platform_sa
 	}
 }
 
-void init_params(){
+void ICACHE_FLASH_ATTR init_params(){
 	user_esp_platform_load_param(&esp_param);
 
 	char ver[32];
@@ -67,7 +67,7 @@ void init_params(){
 }
 
 
-void params_save(){
+void ICACHE_FLASH_ATTR params_save(){
 	user_esp_platform_save_param(&esp_param);
 }
 

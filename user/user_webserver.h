@@ -19,6 +19,11 @@ struct HttpRequest{
 
 };
 
-void user_webserver_init(uint32 port);
+void ICACHE_FLASH_ATTR webserverReplyS(struct espconn *connection, char *str);
+void ICACHE_FLASH_ATTR webserverReply(struct espconn *connection, uint8 *psent, uint16 length);
+void ICACHE_FLASH_ATTR webserverReplyHeader(struct espconn *connection, uint16_t code);
+void ICACHE_FLASH_ATTR user_webserver_init(uint32 port);
+
+void ICACHE_FLASH_ATTR webserver_homepage_print(struct espconn *connection);
 
 #endif

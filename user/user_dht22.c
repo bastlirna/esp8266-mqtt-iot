@@ -16,12 +16,19 @@
 #define MAXTIMINGS 10000
 #define BREAKTIME 20
 
-static volatile os_timer_t some_timer;
-static float lastTemp, lastHum;
+LOCAL volatile os_timer_t some_timer;
+LOCAL float lastTemp = 0;
+LOCAL float lastHum = 0;
 
+float ICACHE_FLASH_ATTR dht22_getTemperature(){
+	return lastTemp;
+}
 
+float ICACHE_FLASH_ATTR dht22_getHumidity(){
+	return lastHum;
+}
 
-static void ICACHE_FLASH_ATTR readDHT(void *arg) {
+LOCAL void ICACHE_FLASH_ATTR readDHT(void *arg) {
 	int counter = 0;
 	int laststate = 1;
 	int i = 0;

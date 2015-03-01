@@ -14,5 +14,14 @@
 #include "user_config.h"
 
 void ICACHE_FLASH_ATTR init_network();
+void ICACHE_FLASH_ATTR setup_station_mode();
+
+enum NetworkConnectionState{
+	USER_AP_MODE,
+	USER_STATION_MODE
+
+};
+
+typedef void (*ConnectionStateCallback)(uint8_t);
 
 #endif /* USER_NETWORK_H_ */

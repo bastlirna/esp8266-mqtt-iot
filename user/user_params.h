@@ -24,6 +24,7 @@
 #define ESP_PARAM_FLAG      3
 
 struct esp_platform_saved_param {
+	uint8 version[32];
     uint8 ssid[40];
     uint8 pass[40];
 };
@@ -33,8 +34,8 @@ struct esp_platform_sec_flag_param {
     uint8 pad[3];
 };
 
-
-void ICACHE_FLASH_ATTR user_esp_platform_save_param(struct esp_platform_saved_param *param);
-void ICACHE_FLASH_ATTR user_esp_platform_load_param(struct esp_platform_saved_param *param);
+void params_save();
+void init_params();
+struct esp_platform_saved_param *get_params();
 
 #endif /* USER_PARAMS_H_ */

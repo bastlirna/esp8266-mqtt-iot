@@ -1,13 +1,9 @@
-/******************************************************************************
- * Copyright 2013-2014 Espressif Systems (Wuxi)
+/*
+ * user_webserver.c
  *
- * FileName: user_webserver.c
- *
- * Description: The web server mode configration.
- *              Check your hardware connection with the host while use this mode.
- * Modification history:
- *     2014/3/12, v1.0 create this file.
- *******************************************************************************/
+ *  Created on: 1. 3. 2015
+ *      Author: vojta
+ */
 #include "ets_sys.h"
 #include "os_type.h"
 #include "osapi.h"
@@ -25,12 +21,25 @@ LOCAL char *webserver_parse_request(struct HttpRequest *request, char *p_data, u
 	// Host: www.example.com\r\n
 	// \r\n
 
+	if(p_data == NULL || length == 0){
+		DEBUG("[WEBSERVER] request is null\r\n");
+		return NULL;
+	}
+
 	char *line = p_data;
 	uint16_t line_n = 0;
 	uint16_t len = 0;
+
+	char *headerEnd = (char *)os_strstr(line, "\r\n\r\n");
+
+	if(headerEnd == NULL){
+		DEBUG("[WEBSERVER] invalid request\r\n");
+		return NULL;
+	}
+
 	do {
 
-		if (line == 0) {
+		if (line_n == 0) {
 
 			if ((char *)os_strstr(line, "GET") == line) {
 				// this is GET request
@@ -43,19 +52,21 @@ LOCAL char *webserver_parse_request(struct HttpRequest *request, char *p_data, u
 				request->type = HEAD;
 			}
 
-			char *r_path = (char *)os_strstr(line, " ");
-			char *r_version = (char *)os_strstr(r_path, " ");
+			char *r_path = (char *)os_strstr(line, " ") + 1;
+			char *r_version = (char *)os_strstr(r_path, " ") + 1;
 
 			switch (request->type) {
 			case GET:
 			case HEAD:
 				// TODO: extract parameters
 
-				len = (uint16_t) (r_version- r_path);
+				len = (uint16_t) (r_version - r_path);
 				if(len > MAX_HTTP_PATH_LEN - 1){
 					len = MAX_HTTP_PATH_LEN - 1;
 				}
 				os_strncpy(request->path, r_path, len);
+
+				DEBUG("[WEBSERVER] GET request (%u:%s)\r\n", len, request->path);
 
 				break;
 			}
@@ -64,11 +75,12 @@ LOCAL char *webserver_parse_request(struct HttpRequest *request, char *p_data, u
 
 		line = (char *)os_strstr(line, "\r\n") + 2;
 		line_n++;
-	} while (line);
+	} while (line < headerEnd);
+
 
 	return p_data;
 }
-#define SERVER_SSL_ENABLE
+
 LOCAL void ICACHE_FLASH_ATTR webserver_reply(struct espconn *connection) {
 	char httphead[256];
 
@@ -84,9 +96,14 @@ LOCAL void ICACHE_FLASH_ATTR webserver_reply(struct espconn *connection) {
 LOCAL void ICACHE_FLASH_ATTR webserver_recv(void *arg, char *p_data, unsigned short length) {
 	struct espconn *ptrespconn = arg;
 
+	INFO("recv\r\n");
+
 	struct HttpRequest req;
 
 	webserver_parse_request(&req, p_data, length);
+
+	INFO("TYPE: %u path: %s\r\n", req.type, req.path);
+
 	// TODO: parse request
 
 	webserver_reply(ptrespconn);
@@ -104,9 +121,12 @@ LOCAL ICACHE_FLASH_ATTR void webserver_discon(void *arg) {
 LOCAL void ICACHE_FLASH_ATTR webserver_listen(void *arg) {
 	struct espconn *pesp_conn = arg;
 
+	INFO("listen\r\n");
 	espconn_regist_recvcb(pesp_conn, webserver_recv);
 	espconn_regist_reconcb(pesp_conn, webserver_recon);
 	espconn_regist_disconcb(pesp_conn, webserver_discon);
+
+
 }
 
 void ICACHE_FLASH_ATTR user_webserver_init(uint32 port) {

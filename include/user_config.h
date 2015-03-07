@@ -9,6 +9,8 @@
 
 /*DEFAULT CONFIGURATIONS*/
 
+#define INSTALLFEST
+
 #define MQTT_HOST			"192.168.11.122" //or "mqtt.yourdomain.com"
 #define MQTT_PORT			1880
 #define MQTT_BUF_SIZE		1024

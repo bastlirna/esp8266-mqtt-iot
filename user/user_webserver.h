@@ -4,20 +4,39 @@
 #define SERVER_PORT 80
 #define SERVER_SSL_PORT 443
 
-typedef enum RequestType {
-    GET = 0,
-    POST,
-    HEAD,
-} ProtocolType;
+typedef enum {
+    HTTP_GET = 0,
+    HTTP_POST,
+    HTTP_HEAD,
+    HTTP_UNDEFINED
+} RequestType;
 
 
 #define MAX_HTTP_PATH_LEN 32
 
-struct HttpRequest{
-	ProtocolType type;
-	char path[MAX_HTTP_PATH_LEN];
+typedef enum {
+	ContentTypeNone = 0,
+	ApplicationXWwwFormUrlencoded,
+	MultipartFormData
+} ContentType;
 
+struct HttpRequest{
+	RequestType type;
+	ContentType contentType;
+	uint32_t requestSize;
+	char hostname[MAX_HTTP_PATH_LEN];
+	char path[MAX_HTTP_PATH_LEN];
+	//HttpRequestVariables *variables;
 };
+/*
+typedef struct _HttpRequestVariables HttpRequestVariables;
+struct _HttpRequestVariables{
+	char *name;
+	char *value;
+	HttpRequestVariables *next;
+};*/
+
+#define MAX_REQUEST_LINE_LEN 100
 
 void ICACHE_FLASH_ATTR webserverReplyS(struct espconn *connection, char *str);
 void ICACHE_FLASH_ATTR webserverReply(struct espconn *connection, uint8 *psent, uint16 length);

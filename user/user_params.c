@@ -58,11 +58,16 @@ void ICACHE_FLASH_ATTR init_params(){
 	c_sprintf(ver, "SIZE:%u", sizeof(esp_param));
 
 	if(os_strncmp(esp_param.version, ver, strlen(ver))){
-		memset(&esp_param, 0, sizeof(esp_param));
-		strcpy(esp_param.version, ver);
+		os_memset(&esp_param, 0, sizeof(esp_param));
+		os_strcpy(esp_param.version, ver);
 
 		params_save();
 	}
+
+	char *essid = "SH_IF";
+	char *pass = "InstallFest15";
+	os_strcpy(esp_param.ssid, essid, os_strlen(essid));
+	os_strcpy(esp_param.pass, pass, os_strlen(pass));
 
 }
 

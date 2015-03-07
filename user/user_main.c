@@ -37,15 +37,20 @@ void ICACHE_FLASH_ATTR user_init() {
 
 
 	init_params();
-	os_printf("Network init done.\r\n");
+	os_printf("Params init done.\r\n");
 
 	init_network();
 	os_printf("Network init done.\r\n");
 
-	user_webserver_init(80);
-	os_printf("Webserver init done.\r\n");
+	//user_webserver_init(80);
+	//os_printf("Webserver init done.\r\n");
+
+	init_mqtt();
+	os_printf("init MQTT done.\r\n");
 
 	user_dht22_init();
 	os_printf("DHT22 init done.\r\n");
+
+
 
 }

@@ -18,58 +18,115 @@
 
 MQTT_Client mqttClient;
 
+LOCAL char macaddr[6];
+
+LOCAL bool connected = false;
+LOCAL bool initialized = false;
 
 
-void mqttConnectedCb(uint32_t *args)
+void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args)
 {
+
 	MQTT_Client* client = (MQTT_Client*)args;
 	INFO("MQTT: Connected\r\n");
-	MQTT_Subscribe(client, "/mqtt/topic/0", 0);
-	MQTT_Subscribe(client, "/mqtt/topic/1", 1);
-	MQTT_Subscribe(client, "/mqtt/topic/2", 2);
+	//MQTT_Subscribe(client, "/mqtt/topic/0", 0);
+	//MQTT_Subscribe(client, "/mqtt/topic/1", 1);
+	//MQTT_Subscribe(client, "/mqtt/topic/2", 2);
 
-	MQTT_Publish(client, "/mqtt/topic/0", "hello0", 6, 0, 0);
-	MQTT_Publish(client, "/mqtt/topic/1", "hello1", 6, 1, 0);
-	MQTT_Publish(client, "/mqtt/topic/2", "hello2", 6, 2, 0);
+
+	//MQTT_Publish(client, "/MG_IOT/test", "iamonline", 6, 1, 0);
+	//MQTT_Publish(client, "/mqtt/topic/2", "hello2", 6, 2, 0);
+
+	connected = true;
+}
+/*
+void ICACHE_FLASH_ATTR user_mqtt_publish_humidity(float value){
+	user_mqtt_publish_value(value, "humidity");
+}
+
+void ICACHE_FLASH_ATTR user_mqtt_publish_temperature(float value){
+	user_mqtt_publish_value(value, "temperature");
+}
+*/
+void ICACHE_FLASH_ATTR user_mqtt_publish_value(float value, char *channel){
+
+	static char path[128];
+	static char s_value[32];
+
+	if(!connected){
+		return;
+	}
+
+	TRACE("[mqtt] prepare\r\n");
+	os_sprintf(path, "/MG_IOT/%02X%02X%02X%02X%02X%02X/%s", MAC2STR(macaddr), channel);
+	TRACE("[mqtt] channel OK\r\n");
+	c_sprintf(s_value, "%.1f", value);
+	TRACE("[mqtt] publish: %s => %s\r\n", path, s_value);
+	MQTT_Publish(&mqttClient, path, s_value, os_strlen(s_value), 0, 0);
+	TRACE("[mqtt] done\r\n");
 
 }
 
-
-void mqttDisconnectedCb(uint32_t *args)
+void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args)
 {
 	MQTT_Client* client = (MQTT_Client*)args;
 	INFO("MQTT: Disconnected\r\n");
+	connected = false;
 }
 
-void mqttPublishedCb(uint32_t *args)
+void ICACHE_FLASH_ATTR mqttPublishedCb(uint32_t *args)
 {
 	MQTT_Client* client = (MQTT_Client*)args;
 	INFO("MQTT: Published\r\n");
 }
 
-void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len)
+void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len)
 {
 	char *topicBuf = (char*)os_zalloc(topic_len+1),
 			*dataBuf = (char*)os_zalloc(data_len+1);
 
 	MQTT_Client* client = (MQTT_Client*)args;
 
-	os_memcpy(topicBuf, topic, topic_len);
-	topicBuf[topic_len] = 0;
+	//os_memcpy(topicBuf, topic, topic_len);
+	//topicBuf[topic_len] = 0;
 
-	os_memcpy(dataBuf, data, data_len);
-	dataBuf[data_len] = 0;
+	//os_memcpy(dataBuf, data, data_len);
+	//dataBuf[data_len] = 0;
 
 	INFO("Receive topic: %s, data: %s \r\n", topicBuf, dataBuf);
 	os_free(topicBuf);
 	os_free(dataBuf);
 }
 
-LOCAL void init_mqtt(){
+void ICACHE_FLASH_ATTR user_mqtt_connected(){
 
-	MQTT_InitConnection(&mqttClient, "192.168.11.122", 1880, 0);
+	if(!connected && initialized){
+		INFO("MQTT: Connnect\r\n");
+		MQTT_Connect(&mqttClient);
+	}
 
-	MQTT_InitClient(&mqttClient, "client_id", "user", "pass", 120, 1);
+}
+
+void ICACHE_FLASH_ATTR user_mqtt_disconnect(){
+
+	if(connected && initialized){
+		INFO("MQTT: Disconnnect\r\n");
+		MQTT_Disconnect(&mqttClient);
+	}
+
+}
+
+void ICACHE_FLASH_ATTR init_mqtt(){
+
+	char ident[64];
+
+	MQTT_InitConnection(&mqttClient, "147.32.30.132", 1883, 0);
+
+
+	wifi_get_macaddr(SOFTAP_IF, macaddr);
+
+	os_sprintf(ident, "MacGyver-IoT_%02x%02x%02x%02x%02x%02x", MAC2STR(macaddr));
+	MQTT_InitClient(&mqttClient, ident, "", "", 120, 1);
 
 	//MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
 	MQTT_OnConnected(&mqttClient, mqttConnectedCb);
@@ -77,6 +134,7 @@ LOCAL void init_mqtt(){
 	MQTT_OnPublished(&mqttClient, mqttPublishedCb);
 	MQTT_OnData(&mqttClient, mqttDataCb);
 
+	initialized = true;
 /*
 	MQTT_Connect(&mqttClient);
 		} else {

@@ -13,8 +13,8 @@
 
 #include "user_params.h"
 #include "user_network.h"
+#include "user_mqtt.h"
 
-ConnectionStateCallback wifiCb = NULL;
 
 LOCAL ETSTimer wiFiLinker;
 
@@ -27,6 +27,7 @@ uint8_t retries = 0;
 enum NetworkConnectionState state = 0;
 
 LOCAL void ICACHE_FLASH_ATTR station_connect() {
+#ifndef INSTALLFEST
 	retries++;
 
 	if(retries > 1){
@@ -37,13 +38,15 @@ LOCAL void ICACHE_FLASH_ATTR station_connect() {
 		setup_ap_mode();
 		return;
 	}
-
+#endif
 	wifi_station_connect();
 }
 
 LOCAL void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 	struct ip_info ipConfig;
 	uint8_t wifiStatus = STATION_IDLE;
+
+	INFO("[NETWORK]: Check\r\n");
 
 	os_timer_disarm(&wiFiLinker);
 
@@ -53,21 +56,16 @@ LOCAL void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 
 	if (wifiStatus == STATION_GOT_IP && ipConfig.ip.addr != 0) {
 
-		DEBUG("[NETWORK] Connected to network (IP: "IPSTR")\r\n", IP2STR(&ipConfig.ip));
-
 		os_timer_setfn(&wiFiLinker, (os_timer_func_t *) wifi_check_ip, NULL);
 		os_timer_arm(&wiFiLinker, 2000, 0);
 
 	} else {
 
 		if (wifi_station_get_connect_status() == STATION_WRONG_PASSWORD) {
-			DEBUG("[NETWORK] error: STATION_WRONG_PASSWORD\r\n");
 			station_connect();
 		} else if (wifi_station_get_connect_status() == STATION_NO_AP_FOUND) {
-			DEBUG("[NETWORK] error: STATION_NO_AP_FOUND\r\n");
 			station_connect();
 		} else if (wifi_station_get_connect_status() == STATION_CONNECT_FAIL) {
-			DEBUG("[NETWORK] error: STATION_CONNECT_FAIL\r\n");
 			station_connect();
 		} else {
 			//DEBUG("[NETWORK] error: STATION_IDLE\r\n");
@@ -81,12 +79,30 @@ LOCAL void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 	}
 
 	if (wifiStatus != lastWifiStatus) {
+		TRACE("[NETWORK] wifiStatus: %u\r\n", wifiStatus);
+		if(wifiStatus == STATION_GOT_IP){
+
+			DEBUG("[NETWORK] Connected to network (IP: "IPSTR")\r\n", IP2STR(&ipConfig.ip));
+
+			user_mqtt_connected();
+		} else {
+
+			if (wifi_station_get_connect_status() == STATION_WRONG_PASSWORD) {
+				DEBUG("[NETWORK] error: STATION_WRONG_PASSWORD\r\n");
+			} else if (wifi_station_get_connect_status() == STATION_NO_AP_FOUND) {
+				DEBUG("[NETWORK] error: STATION_NO_AP_FOUND\r\n");
+			} else if (wifi_station_get_connect_status() == STATION_CONNECT_FAIL) {
+				DEBUG("[NETWORK] error: STATION_CONNECT_FAIL\r\n");
+			}
+
+			user_mqtt_disconnect();
+		}
 
 		lastWifiStatus = wifiStatus;
-		if (wifiCb)
-			wifiCb(wifiStatus);
+
 
 	}
+	INFO("[NETWORK]: Check done\r\n");
 }
 
 LOCAL void ICACHE_FLASH_ATTR runCheckTimer() {
@@ -109,10 +125,12 @@ void ICACHE_FLASH_ATTR init_network() {
 		runCheckTimer();
 
 	} else {
+#ifndef INSTALLFEST
 		state = USER_AP_MODE;
 
 		DEBUG("[NETWORK] SSID is null, creating AP\r\n");
 		setup_ap_mode();
+#endif
 	}
 }
 

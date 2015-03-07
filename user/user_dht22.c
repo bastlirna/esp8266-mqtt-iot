@@ -12,6 +12,7 @@
 #include "user_interface.h"
 #include "gpio.h"
 
+#include "user_mqtt.h"
 
 #define MAXTIMINGS 10000
 #define BREAKTIME 20
@@ -40,24 +41,32 @@ LOCAL void ICACHE_FLASH_ATTR readDHT(void *arg) {
 	int data[100];
 	data[0] = data[1] = data[2] = data[3] = data[4] = 0;
 
+	os_intr_lock();
+	wdt_feed();
+
 	GPIO_OUTPUT_SET(2, 1);
 	os_delay_us(250000);
 
 	GPIO_OUTPUT_SET(2, 0);
-	os_delay_us(2000);
+	os_delay_us(15000);
 
 	GPIO_OUTPUT_SET(2, 1);
 	os_delay_us(40);
 	GPIO_DIS_OUTPUT(2);
 	PIN_PULLUP_EN(PERIPHS_IO_MUX_GPIO2_U);
 
+
 	// wait for pin to drop?
-	while (GPIO_INPUT_GET(2) == 1 && i < 100000) {
+	while (GPIO_INPUT_GET(2) == 1 && i < 10000) {
 		os_delay_us(1);
 		i++;
 	}
-	if (i == 100000)
+
+
+	if (i == 10000){
+		DEBUG("[DHT22] read error \r\n");
 		return;
+	}
 	// read data!
 	for (i = 0; i < MAXTIMINGS; i++) {
 		counter = 0;
@@ -78,31 +87,28 @@ LOCAL void ICACHE_FLASH_ATTR readDHT(void *arg) {
 				data[j / 8] |= 1;
 			j++;
 		}
+
 	}
-	/*
-	 for (i=3; i<bitidx; i+=2) {
-	 os_printf("bit %d: %d\n", i-3, bits[i]);
-	 os_printf("bit %d: %d (%d)\n", i-2, bits[i+1], bits[i+1] > BREAKTIME);
-	 }
-	 os_printf("Data (%d): 0x%x 0x%x 0x%x 0x%x 0x%x\n", j, data[0], data[1], data[2], data[3], data[4]);
-	 */
+	os_intr_unlock();
+
 	float temp_p, hum_p;
 	if (j >= 39) {
 		checksum = (data[0] + data[1] + data[2] + data[3]) & 0xFF;
 		if (data[4] == checksum) {
-			/* yay! checksum is valid */
+			// yay! checksum is valid
 			hum_p = data[0] * 256 + data[1];
 			hum_p /= 10;
 			temp_p = (data[2] & 0x7F) * 256 + data[3];
 			temp_p /= 10.0;
 			if (data[2] & 0x80)
 				temp_p *= -1;
-			//sendReading(temp_p, hum_p);
-			char tmp[30];
 
 			lastTemp = temp_p;
 			lastHum = hum_p;
 
+			TRACE("[DHT22] start send values\r\n");
+			user_mqtt_publish_value(temp_p, "temperature");
+			user_mqtt_publish_value(hum_p, "humidity");
 			DEBUG("[DHT22] Temp = %.1f, Hum = %.1f\r\n", temp_p, hum_p);
 		}
 	}

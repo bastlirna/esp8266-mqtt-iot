@@ -13,7 +13,7 @@ const char *lua_init_value = "@init.lua";
 // }
 // void c_exit(int e){
 // }
-const char *c_getenv(const char *__string)
+const char ICACHE_FLASH_ATTR *c_getenv(const char *__string)
 {
     if (c_strcmp(__string, "LUA_INIT") == 0)
     {
@@ -71,7 +71,7 @@ double powersOf10[] ICACHE_STORE_ATTR ICACHE_RODATA_ATTR =   /* Table giving bin
     1.0e256
 };
 
-double c_strtod(const char *string, char **endPtr)
+double ICACHE_FLASH_ATTR c_strtod(const char *string, char **endPtr)
 {
     int maxExponent = 511;  /* Largest possible base 10 exponent.  Any
                  * exponent larger than this will already

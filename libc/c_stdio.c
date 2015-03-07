@@ -99,9 +99,9 @@ int c_stderr = 1001;
  */
 //#include <string.h>
 #include "c_string.h"
+#include "c_types.h"
 
-char *
-strichr(char *p, int c)
+char ICACHE_FLASH_ATTR *strichr(char *p, int c)
 {
     char *t;
 
@@ -159,8 +159,7 @@ strichr(char *p, int c)
  *  Format string by inserting blanks.
  */
 
-void
-str_fmt(char *p, int size, int fmt)
+void ICACHE_FLASH_ATTR str_fmt(char *p, int size, int fmt)
 {
     int n, m, len;
 
@@ -226,8 +225,7 @@ str_fmt(char *p, int size, int fmt)
 #include "c_string.h"
 #include "c_ctype.h"
 
-void
-strtoupper(char *p)
+void ICACHE_FLASH_ATTR strtoupper(char *p)
 {
     if(!p)
         return;
@@ -272,7 +270,8 @@ strtoupper(char *p)
 //#include <string.h>
 //#include <pmon.h>
 #include "c_string.h"
-typedef int int32_t;
+
+//typedef int int32_t;
 typedef unsigned int u_int32_t;
 typedef unsigned int u_int;
 typedef unsigned long u_long;
@@ -288,8 +287,7 @@ typedef double rtype;
 static char * _getbase __P((char *, int *));
 static int _atob __P((unsigned long long *, char *p, int));
 
-static char *
-_getbase(char *p, int *basep)
+static char ICACHE_FLASH_ATTR *_getbase(char *p, int *basep)
 {
     if (p[0] == '0') {
         switch (p[1]) {
@@ -316,8 +314,7 @@ _getbase(char *p, int *basep)
 /*
  *  _atob(vp,p,base)
  */
-static int
-_atob (u_quad_t *vp, char *p, int base)
+static int ICACHE_FLASH_ATTR _atob (u_quad_t *vp, char *p, int base)
 {
     u_quad_t value, v1, v2;
     char *q, tmp[20];
@@ -371,8 +368,7 @@ _atob (u_quad_t *vp, char *p, int base)
  *  atob(vp,p,base) 
  *      converts p to binary result in vp, rtn 1 on success
  */
-int
-atob(u_int32_t *vp, char *p, int base)
+int ICACHE_FLASH_ATTR atob(u_int32_t *vp, char *p, int base)
 {
     u_quad_t v;
 
@@ -390,8 +386,7 @@ atob(u_int32_t *vp, char *p, int base)
  *  llatob(vp,p,base) 
  *      converts p to binary result in vp, rtn 1 on success
  */
-int
-llatob(u_quad_t *vp, char *p, int base)
+int ICACHE_FLASH_ATTR llatob(u_quad_t *vp, char *p, int base)
 {
     if (base == 0)
         p = _getbase (p, &base);
@@ -403,8 +398,7 @@ llatob(u_quad_t *vp, char *p, int base)
  *  char *btoa(dst,value,base) 
  *      converts value to ascii, result in dst
  */
-char *
-btoa(char *dst, u_int value, int base)
+char ICACHE_FLASH_ATTR *btoa(char *dst, u_int value, int base)
 {
     char buf[34], digit;
     int i, j, rem, neg;
@@ -449,8 +443,7 @@ btoa(char *dst, u_int value, int base)
  *  char *btoa(dst,value,base) 
  *      converts value to ascii, result in dst
  */
-char *
-llbtoa(char *dst, u_quad_t value, int base)
+char ICACHE_FLASH_ATTR *llbtoa(char *dst, u_quad_t value, int base)
 {
     char buf[66], digit;
     int i, j, rem, neg;
@@ -496,8 +489,7 @@ llbtoa(char *dst, u_quad_t value, int base)
  *      convert n hex digits from p to binary, result in vp, 
  *      rtn 1 on success
  */
-int
-gethex(int32_t *vp, char *p, int n)
+int ICACHE_FLASH_ATTR gethex(int32_t *vp, char *p, int n)
 {
     u_long v;
     int digit;
@@ -566,8 +558,7 @@ gethex(int32_t *vp, char *p, int n)
 /*
  *  int vsprintf(d,s,ap)
  */
-int 
-vsprintf (char *d, const char *s, va_list ap)
+int ICACHE_FLASH_ATTR vsprintf (char *d, const char *s, va_list ap)
 {
     const char *t;
     char *p, *dst, tmp[40];
@@ -793,7 +784,7 @@ static int _finite(rtype d)
 }
 
 
-void dtoa (char *dbuf, rtype arg, int fmtch, int width, int prec)
+void ICACHE_FLASH_ATTR dtoa (char *dbuf, rtype arg, int fmtch, int width, int prec)
 {
     char    buf[MAX_FCONVERSION+1], *cp;
     char    sign;
@@ -837,8 +828,7 @@ void dtoa (char *dbuf, rtype arg, int fmtch, int width, int prec)
 }
 
 
-static int
-cvt(rtype number, int prec, char *signp, int fmtch, char *startp, char *endp)
+static int ICACHE_FLASH_ATTR cvt(rtype number, int prec, char *signp, int fmtch, char *startp, char *endp)
 {
     register char *p, *t;
     register double fract;
@@ -1024,8 +1014,7 @@ eformat:    if (expcnt) {
 }
 
 
-static char *
-c_round(double fract, int *exp, char *start, char *end, char ch, char *signp)
+static char ICACHE_FLASH_ATTR *c_round(double fract, int *exp, char *start, char *end, char ch, char *signp)
 {
     double tmp;
 
@@ -1065,8 +1054,7 @@ c_round(double fract, int *exp, char *start, char *end, char ch, char *signp)
     return (start);
 }
 
-static char *
-exponent(char *p, int exp, int fmtch)
+static char ICACHE_FLASH_ATTR *exponent(char *p, int exp, int fmtch)
 {
     char *t;
     char expbuf[MAX_FCONVERSION];
@@ -1095,7 +1083,7 @@ exponent(char *p, int exp, int fmtch)
 #endif /* FLOATINGPT */
 
 
-void c_sprintf(char *s, char *fmt, ...)
+void ICACHE_FLASH_ATTR c_sprintf(char *s, char *fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);

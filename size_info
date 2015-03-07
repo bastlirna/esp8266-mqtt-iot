@@ -1,0 +1,35 @@
+#!/bin/bash
+
+OBJDUMP=/opt/Espressif/crosstool-NG/builds/xtensa-lx106-elf/bin/xtensa-lx106-elf-objdump
+OUTPUT=./build/app.out
+DATA=(data rodata bss text irom0_text)
+NAMES=("Initialized Data (RAM)" "ReadOnly Data (RAM)" "Uninit. Data (RAM)" "Cached Code (IRAM)" "Uncached Code (SPI)")
+
+OUT=   
+
+
+echo "Used:"
+
+for index in ${!DATA[*]}
+do
+    
+    START=`${OBJDUMP} -t $OUTPUT | grep " _${DATA[$index]}_start" | awk '{print $1}'`
+    END=`${OBJDUMP} -t $OUTPUT | grep " _${DATA[$index]}_end" | awk '{print $1}'`
+
+    OUT[$index]=$(( $((16#${END})) - $((16#${START})) ))
+    
+    printf "\t%s:\t%u B\n" "${NAMES[$index]}" ${OUT[$index]}
+
+done
+
+echo "Totals:"
+
+RAM_TOTAL=$(( ${OUT[0]} + ${OUT[1] + ${OUT[2]}}))
+
+printf "\tUsed RAM tot.:\t%u B (used: %u%%)\n" $RAM_TOTAL $(( $((${RAM_TOTAL} * 100)) / $((16#14000)) ))
+printf "\tFree RAM:\t%u B\n" $(( $((16#14000)) - ${RAM_TOTAL})) 
+printf "\tUsed IRAM tot.:\t%u B (used: %u%%)\n" ${OUT[3]} $(( $((${OUT[3]} * 100)) / $((16#8000)) ))
+printf "\tFree IRAM:\t%u B\n" $(( $((16#8000)) - ${OUT[3]}))
+
+
+

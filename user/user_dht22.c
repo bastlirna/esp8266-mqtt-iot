@@ -21,6 +21,8 @@ LOCAL volatile os_timer_t some_timer;
 LOCAL float lastTemp = 0;
 LOCAL float lastHum = 0;
 
+uint16_t send_counter = 0;
+
 float ICACHE_FLASH_ATTR dht22_getTemperature(){
 	return lastTemp;
 }
@@ -107,12 +109,15 @@ LOCAL void ICACHE_FLASH_ATTR readDHT(void *arg) {
 			lastHum = hum_p;
 
 			TRACE("[DHT22] start send values\r\n");
-			user_mqtt_publish_value(temp_p, "temperature");
-			user_mqtt_publish_value(hum_p, "humidity");
+			user_mqtt_publish_valueF(temp_p, "temperature");
+			user_mqtt_publish_valueF(hum_p, "humidity");
+			user_mqtt_publish_valueU(send_counter, "count");
 			DEBUG("[DHT22] Temp = %.1f, Hum = %.1f\r\n", temp_p, hum_p);
+			send_counter++;
 		}
 	}
 	DEBUG("[DHT22] end read \r\n");
+
 
 
 }

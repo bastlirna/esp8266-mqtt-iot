@@ -46,7 +46,7 @@ LOCAL void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 	struct ip_info ipConfig;
 	uint8_t wifiStatus = STATION_IDLE;
 
-	INFO("[NETWORK]: Check\r\n");
+	//INFO("[NETWORK]: Check\r\n");
 
 	os_timer_disarm(&wiFiLinker);
 

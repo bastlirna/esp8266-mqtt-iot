@@ -48,24 +48,33 @@ void ICACHE_FLASH_ATTR user_mqtt_publish_temperature(float value){
 	user_mqtt_publish_value(value, "temperature");
 }
 */
-void ICACHE_FLASH_ATTR user_mqtt_publish_value(float value, char *channel){
+void ICACHE_FLASH_ATTR user_mqtt_publish_value(char *s_value, char *channel){
 
 	static char path[128];
-	static char s_value[32];
 
 	if(!connected){
 		return;
 	}
 
-	TRACE("[mqtt] prepare\r\n");
 	os_sprintf(path, "/MG_IOT/%02X%02X%02X%02X%02X%02X/%s", MAC2STR(macaddr), channel);
-	TRACE("[mqtt] channel OK\r\n");
-	c_sprintf(s_value, "%.1f", value);
 	TRACE("[mqtt] publish: %s => %s\r\n", path, s_value);
 	MQTT_Publish(&mqttClient, path, s_value, os_strlen(s_value), 0, 0);
 	TRACE("[mqtt] done\r\n");
 
 }
+
+void ICACHE_FLASH_ATTR user_mqtt_publish_valueF(float value, char *channel){
+	static char s_value[32];
+	c_sprintf(s_value, "%.1f", value);
+	user_mqtt_publish_value(s_value, channel);
+}
+
+void ICACHE_FLASH_ATTR user_mqtt_publish_valueU(uint16_t value, char *channel){
+	static char s_value[32];
+	c_sprintf(s_value, "%u", value);
+	user_mqtt_publish_value(s_value, channel);
+}
+
 
 void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args)
 {

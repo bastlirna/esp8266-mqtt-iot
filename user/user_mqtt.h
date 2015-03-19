@@ -15,7 +15,7 @@ void ICACHE_FLASH_ATTR init_mqtt();
 void ICACHE_FLASH_ATTR user_mqtt_publish_valueF(float value, char *channel);
 void ICACHE_FLASH_ATTR user_mqtt_publish_valueU(uint16_t value, char *channel);
 void ICACHE_FLASH_ATTR user_mqtt_publish_value(char *s_value, char *channel);
-void ICACHE_FLASH_ATTR user_mqtt_connected();
+void ICACHE_FLASH_ATTR user_mqtt_connect();
 void ICACHE_FLASH_ATTR user_mqtt_disconnect();
 
 

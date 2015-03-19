@@ -52,6 +52,7 @@ unsigned char *default_certificate;
 unsigned int default_certificate_len = 0;
 unsigned char *default_private_key;
 unsigned int default_private_key_len = 0;
+LOCAL unsigned int reconnectTimeout = 0;
 
 os_event_t mqtt_procTaskQueue[MQTT_TASK_QUEUE_SIZE];
 
@@ -301,6 +302,15 @@ void ICACHE_FLASH_ATTR mqtt_timer(void *arg)
 			client->connState = TCP_RECONNECT;
 			system_os_post(MQTT_TASK_PRIO, 0, (os_param_t)client);
 		}
+	} else if (client->connState == TCP_CONNECTING){
+
+		reconnectTimeout++;
+		if(reconnectTimeout > 5){
+			INFO("MQTT: Connecting timeout, try again ...");
+			client->connState = TCP_RECONNECT_REQ;
+			reconnectTimeout = 0;
+			system_os_post(MQTT_TASK_PRIO, 0, (os_param_t)client);
+		}
 	}
 	if(client->sendTimeout > 0)
 		client->sendTimeout --;
@@ -454,6 +464,7 @@ MQTT_Task(os_event_t *e)
 		MQTT_Connect(client);
 		INFO("TCP: Reconnect to: %s:%d\r\n", client->host, client->port);
 		client->connState = TCP_CONNECTING;
+		reconnectTimeout = 0;
 		break;
 	case MQTT_DATA:
 		if(QUEUE_IsEmpty(&client->msgQueue) || client->sendTimeout != 0) {
@@ -610,6 +621,7 @@ MQTT_Connect(MQTT_Client *mqttClient)
 		espconn_gethostbyname(mqttClient->pCon, mqttClient->host, &mqttClient->ip, mqtt_dns_found);
 	}
 	mqttClient->connState = TCP_CONNECTING;
+	reconnectTimeout = 0;
 }
 
 void ICACHE_FLASH_ATTR

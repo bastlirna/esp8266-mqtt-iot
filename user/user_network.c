@@ -24,7 +24,7 @@ static lastWifiStatus = STATION_IDLE;
 
 uint8_t retries = 0;
 
-enum NetworkConnectionState state = 0;
+enum NetworkConnectionState state = USER_STATION_MODE;
 
 LOCAL void ICACHE_FLASH_ATTR station_connect() {
 #ifndef INSTALLFEST
@@ -53,6 +53,8 @@ LOCAL void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 	wifi_get_ip_info(STATION_IF, &ipConfig);
 
 	wifiStatus = wifi_station_get_connect_status();
+
+	INFO("[NETWORK]: Actual state: %u\r\n", wifiStatus);
 
 	if (wifiStatus == STATION_GOT_IP && ipConfig.ip.addr != 0) {
 
@@ -84,7 +86,7 @@ LOCAL void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 
 			DEBUG("[NETWORK] Connected to network (IP: "IPSTR")\r\n", IP2STR(&ipConfig.ip));
 
-			user_mqtt_connected();
+			user_mqtt_connect();
 		} else {
 
 			if (wifi_station_get_connect_status() == STATION_WRONG_PASSWORD) {
@@ -102,7 +104,7 @@ LOCAL void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 
 
 	}
-	INFO("[NETWORK]: Check done\r\n");
+
 }
 
 LOCAL void ICACHE_FLASH_ATTR runCheckTimer() {

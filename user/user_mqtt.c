@@ -53,10 +53,11 @@ void ICACHE_FLASH_ATTR user_mqtt_publish_value(char *s_value, char *channel){
 	static char path[128];
 
 	if(!connected){
+		TRACE("[mqtt] is not connected!\r\n");
 		return;
 	}
 
-	os_sprintf(path, "/MG_IOT/%02X%02X%02X%02X%02X%02X/%s", MAC2STR(macaddr), channel);
+	os_sprintf(path, "/sh/mucirna/%02X%02X%02X%02X%02X%02X/%s", MAC2STR(macaddr), channel);
 	TRACE("[mqtt] publish: %s => %s\r\n", path, s_value);
 	MQTT_Publish(&mqttClient, path, s_value, os_strlen(s_value), 0, 0);
 	TRACE("[mqtt] done\r\n");
@@ -107,7 +108,7 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
 	os_free(dataBuf);
 }
 
-void ICACHE_FLASH_ATTR user_mqtt_connected(){
+void ICACHE_FLASH_ATTR user_mqtt_connect(){
 
 	if(!connected && initialized){
 		INFO("MQTT: Connnect\r\n");

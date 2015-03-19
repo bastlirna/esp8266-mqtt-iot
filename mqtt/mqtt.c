@@ -87,6 +87,7 @@ mqtt_dns_found(const char *name, ip_addr_t *ipaddr, void *arg)
 		}
 
 		client->connState = TCP_CONNECTING;
+		reconnectTimeout = 0;
 		INFO("TCP: connecting...\r\n");
 	}
 
